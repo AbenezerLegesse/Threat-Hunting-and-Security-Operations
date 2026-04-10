@@ -4,7 +4,7 @@
 **Status:** Investigation Concluded - Suspicious Internal Reconnaissance Confirmed
 **Objective:** To identify the cause of internal network slowdowns and determine whether a Windows Virtual Machine (VM) was conducting suspicious internal scanning activity using Microsoft Defender for Endpoint (MDE) telemetry.
 
-During this proactive threat hunt, I investigated unusual network performance degradation affecting hosts in the `10.0.0.0/16` network. After reviewing network, process, and file telemetry in Microsoft Defender for Endpoint, I identified a Windows asset performing repeated failed connection attempts across multiple service ports on another internal host. Correlated evidence showed that the activity was driven by `powershell.exe`, which downloaded and executed a script named `portscan.ps1` from an external source. Additional analysis confirmed the file existed on disk and that the activity was executed under the `SYSTEM` account. Based on the evidence, the activity aligned with internal reconnaissance and port-scanning behavior.
+During this proactive threat hunt, I investigated unusual network performance degradation affecting hosts in the network. After reviewing network, process, and file telemetry in Microsoft Defender for Endpoint, I identified a Windows asset performing repeated failed connection attempts across multiple service ports on another internal host. Correlated evidence showed that the activity was driven by `powershell.exe`, which downloaded and executed a script named `portscan.ps1` from an external source. Additional analysis confirmed the file existed on disk and that the activity was executed under the `SYSTEM` account. Based on the evidence, the activity aligned with internal reconnaissance and port-scanning behavior.
 
 ## 🛡️ Professional Skills Demonstrated
 * **Threat Hunting & Detection:** Proactive identification of abnormal internal scanning behavior.
@@ -175,11 +175,14 @@ Based on this suspicious activity, I isolated the device to prevent any further 
 <img width="1720" height="685" alt="Screenshot 2026-04-10 at 1 11 10 AM" src="https://github.com/user-attachments/assets/a5cd8921-179a-4da6-ba31-3b2df57946a9" />
 <img width="1728" height="660" alt="Screenshot 2026-04-10 at 1 09 14 AM" src="https://github.com/user-attachments/assets/66434b4f-d8a2-416d-93c0-f8590cc2908c" />
 
+---
 
 ## 📝 Conclusion
 This investigation confirmed that the observed internal network slowdown was associated with suspicious internal reconnaissance behavior. By correlating `DeviceNetworkEvents`, `DeviceProcessEvents`, and `DeviceFileEvents`, I verified that a PowerShell script named `portscan.ps1` was downloaded, written to disk, and executed under the `SYSTEM` account. The resulting activity matched known reconnaissance behavior and aligned with T1046, T1059.001, and T1105 in the MITRE ATT&CK framework.
 
 The device was isolated and a malware scan was initiated to prevent further activity. The investigation also highlighted the need for better internal segmentation, stronger script controls, and improved detections for suspicious internal scanning behavior.
+
+---
 
 ## 📊 Findings Summary
 
