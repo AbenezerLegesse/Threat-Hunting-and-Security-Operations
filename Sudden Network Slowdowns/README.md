@@ -77,12 +77,10 @@ DeviceNetworkEvents
 
 This analysis revealed several systems with high failed connection counts:
 
-| Device | Failed Connections | Target IP |
-|--------|-------------------|-----------|
-| windows-target- | 156 | 10.0.0.198 |
-| yves-windows11 | 138 | 10.0.0.155 |
-| onboarding | 104 | 10.0.0.198 |
-| abdiazizonboard | 78 | 10.0.0.198 |
+* **windows-target-**: 156 failed connections (10.0.0.155 → 10.0.0.198)
+* **yves-windows11**: 138 failed connections (10.0.0.112 → 10.0.0.155)
+* **onboarding**: 104 failed connections (10.0.0.111 → 10.0.0.198)
+* **abdiazizonboard**: 78 failed connections (10.0.0.10 → 10.0.0.198)
 
 Among these systems, `10.0.0.155` (windows-target-) stood out as the most suspicious source for deeper analysis.
 
