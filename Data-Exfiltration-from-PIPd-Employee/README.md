@@ -30,6 +30,8 @@ This lab simulates an insider threat scenario in which a privileged employee, Jo
 ### 1️⃣ Onboard VM to MDE
 *Verified that `windows-lab-tes` appears in the Device Inventory with a status of **Informational** and is actively sending telemetry.*
 
+![Onboarding screenshot](images/image-5.png)
+
 ### 2️⃣ Simulate Suspicious Activity
 Executed the following PowerShell command on the VM:
 
@@ -41,6 +43,8 @@ The script:
 - Compresses employee data into `employee-data-20260410153713.zip`.
 - Attempts an outbound transfer (not captured in the sample logs).
 
+![PowerShell execution screenshot](images/image-1.png)
+
 ### 3️⃣ Hunt for ZIP Archive Activity
 ```kql
 DeviceFileEvents
@@ -49,6 +53,8 @@ DeviceFileEvents
 | order by Timestamp desc
 ```
 Result: `employee-data-20260410153713.zip` created at **15:37:21.8238291 Z**.
+
+![ZIP archive query screenshot](images/image-6.png)
 
 ### 4️⃣ Pivot to Process Events
 ```kql
@@ -60,6 +66,8 @@ DeviceProcessEvents
 | order by Timestamp desc
 ```
 Key processes: `powershell.exe`, `cmd.exe`, `7z2408‑x64.exe`, `7z.exe`, `whoami.exe`.
+
+![Process events screenshot](images/image-7.png)
 
 ### 5️⃣ Refine Process Hunt
 ```kql
@@ -76,6 +84,8 @@ Highlights:
 - 7‑Zip invoked to create the ZIP.
 - All under account `cyber-lab27`.
 
+![Refined process query screenshot](images/image-8.png)
+
 ### 6️⃣ Network Activity Analysis
 ```kql
 let VMName = "windows-lab-tes";
@@ -90,11 +100,17 @@ Findings:
 - Predominant traffic from `msedgewebview2.exe` (Microsoft Edge WebView).
 - Inbound connection attempts to the VM.
 
+![Network events screenshot](images/image-2.png)
+
 ### 7️⃣ Validate Script on Endpoint
 Confirmed that `exfiltratedata.ps1` exists in `C:\ProgramData`. Reviewed its contents; it downloads the ZIP utility and compresses data locally.
 
+![Script file screenshot](images/image-3.png)
+
 ### 8️⃣ Containment
 Isolated `windows-lab-tes` from the network to prevent further data transfer while preserving evidence.
+
+![Containment screenshot](images/image-4.png)
 
 ## Findings & Results
 | Observation | Evidence |
