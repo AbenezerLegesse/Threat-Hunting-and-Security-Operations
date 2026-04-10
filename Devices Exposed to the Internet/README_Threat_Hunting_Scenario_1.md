@@ -43,6 +43,7 @@ To begin the investigation, I first confirmed that the target VM was successfull
 
 This confirmed that the system was visible in Defender and available for hunting.
 
+
 ### Why this matters
 - Confirms the endpoint is onboarded
 - Ensures the device is visible in MDE
@@ -51,7 +52,8 @@ This confirmed that the system was visible in Defender and available for hunting
 ### Figure 1
 **Microsoft Defender Device Inventory showing the onboarded target VM (`windows-target-`)**
 
-> Note: MDE may shorten long device names. A host originally named something like `windows-target-1` may appear as `windows-target-` in queries and portal results.
+<img width="1041" height="770" alt="Screenshot 2026-04-09 at 7 10 15 PM" src="https://github.com/user-attachments/assets/8aa00707-a828-4f4b-b2ad-6e6aa4921646" />
+
 
 ---
 
@@ -77,6 +79,7 @@ The results showed the device had a recorded **public IP address: `172.176.88.10
 **Advanced Hunting query against `DeviceInfo` confirming active telemetry for `windows-target-`**
 
 ---
+<img width="874" height="777" alt="Screenshot 2026-04-09 at 7 18 13 PM" src="https://github.com/user-attachments/assets/f3a2bdbd-9939-4b85-a1ec-80f53b5ccf06" />
 
 ## Step 3: Confirm the VM Was Internet-Facing
 To verify the core scenario, I queried `DeviceInfo` again to determine whether the host was marked as internet-facing.
@@ -102,6 +105,7 @@ An internet-facing Windows host is a common target for scanning, password sprayi
 **Advanced Hunting results showing `windows-target-` marked as internet-facing with public IP `172.176.88.102`**
 
 ---
+<img width="1087" height="348" alt="Screenshot 2026-04-09 at 7 22 10 PM" src="https://github.com/user-attachments/assets/7e106922-8151-475b-bb87-e466cb562e75" />
 
 ## Step 4: Identify Failed Remote Logon Attempts
 After confirming the VM was exposed to the internet, I queried `DeviceLogonEvents` to look for failed remote authentication attempts.
@@ -139,6 +143,8 @@ The pattern of repeated failed logons from several public IP addresses is consis
 **Failed remote logon attempts against `windows-target-` from multiple external IP addresses**
 
 ---
+<img width="1129" height="698" alt="Screenshot 2026-04-09 at 7 23 16 PM" src="https://github.com/user-attachments/assets/46bf8a53-9edd-4d04-8f2c-77df70e8b5b4" />
+
 
 ## Step 5: Check Whether the Top Failed Logon IPs Later Succeeded
 Next, I investigated whether the most aggressive source IP addresses later achieved successful authentication.
@@ -171,6 +177,8 @@ Although the target VM was receiving repeated login attempts from the internet, 
 **No successful logons found for the top external IP addresses responsible for the highest number of failed attempts**
 
 ---
+<img width="1201" height="380" alt="Screenshot 2026-04-09 at 7 25 01 PM" src="https://github.com/user-attachments/assets/311ff2e2-5134-475c-9f10-c1ba02116cad" />
+
 
 ## Step 6: Review All Successful Logons on the Target VM
 To better understand whether any successful access occurred on the system, I reviewed all successful logon events for the device.
@@ -195,7 +203,8 @@ The successful logons appeared to be associated with expected local or system-re
 ### Figure 6
 **Successful logon events observed on `windows-target-` during the review period**
 
----
+<img width="1428" height="363" alt="Screenshot 2026-04-09 at 7 27 56 PM" src="https://github.com/user-attachments/assets/8980155d-2af6-49bd-9e34-dfd6dc0100ce" />
+
 
 ## Step 7: Check Whether Successful Accounts Had Prior Failed Attempts
 To test for a classic brute-force pattern of **many failed attempts followed by a success**, I investigated whether the accounts tied to successful logons had any failed logon history.
@@ -214,6 +223,9 @@ DeviceLogonEvents
 | where AccountName == "dwm-1"
 | where ActionType == "LogonFailed"
 ```
+<img width="1201" height="380" alt="Screenshot 2026-04-09 at 7 25 01 PM" src="https://github.com/user-attachments/assets/bea42367-5f97-4c29-b308-a1300e6cce0d" />
+
+```kusto
 
 ```kusto
 DeviceLogonEvents
@@ -222,6 +234,7 @@ DeviceLogonEvents
 | where AccountName == "umfd-1"
 | where ActionType == "LogonFailed"
 ```
+<img width="1201" height="380" alt="Screenshot 2026-04-09 at 7 25 01 PM" src="https://github.com/user-attachments/assets/bea42367-5f97-4c29-b308-a1300e6cce0d" />
 
 ```kusto
 DeviceLogonEvents
@@ -230,6 +243,9 @@ DeviceLogonEvents
 | where AccountName == "umfd-0"
 | where ActionType == "LogonFailed"
 ```
+
+
+<img width="1201" height="380" alt="Screenshot 2026-04-09 at 7 25 01 PM" src="https://github.com/user-attachments/assets/b6f6987a-99bd-482c-b85e-13035b5df995" />
 
 All three queries returned **zero failed logon events** for those accounts.
 
@@ -254,13 +270,6 @@ Because there were no failed logon attempts tied to `dwm-1`, `umfd-1`, or `umfd-
 - The most aggressive attacking IPs did **not** achieve a successful logon
 - Only **4 successful logons** were observed in the review window
 - Those successful logons were not associated with prior failed attempts on the same accounts
-
-### Final assessment
-Although the internet-facing VM was targeted by brute-force login attempts, there was **no evidence that the attackers successfully gained access to the system**.
-
-A more formal statement for the report:
-
-> The investigation confirmed that the exposed VM experienced repeated failed authentication attempts consistent with brute-force or password-spraying activity. However, there was no evidence that the most active external source IPs successfully authenticated to the host, and the successful logons observed did not exhibit a failed-to-success pattern indicative of brute-force compromise.
 
 ---
 
@@ -300,21 +309,13 @@ Because no confirmed compromise was found, response activity would focus on redu
 - Regularly audit internet-facing assets in Defender
 - Use hardened administrative credentials and disable weak/default passwords
 
-### Hunting process improvements
-- Expand the hunt window beyond 7 or 30 days if needed
-- Correlate `DeviceLogonEvents` with `DeviceNetworkEvents`, `DeviceProcessEvents`, and alert data for deeper validation
-- Build custom detections for repeated failed external logons on internet-facing endpoints
-- Track recurring hostile source IPs across multiple systems in the environment
 
 ---
 
 ## Conclusion
 This threat hunting scenario successfully validated that **`windows-target-`** was internet-facing and receiving repeated failed logon attempts from external IP addresses. The observed activity was consistent with opportunistic brute-force or password-spraying attacks commonly directed at exposed Windows systems.
 
-However, after reviewing the most aggressive attacking IPs and all successful logon activity on the host, there was **no evidence of confirmed unauthorized access**. The attack attempts were unsuccessful, and the successful logons observed were not supported by failed-to-success authentication patterns.
-
-### Final takeaway
-Even though brute-force activity was present, the attackers were **not able to get into the VM** based on the evidence available in this investigation.
+However, after reviewing the most aggressive attacking IPs and all successful logon activity on the host, there was **no evidence of confirmed unauthorized access**. The attack attempts were unsuccessful, and the successful logons observed were not supported by failed-to-success authentication patterns. Even though brute-force activity was present, the attackers were **not able to get into the VM** based on the evidence available in this investigation.
 
 ---
 
